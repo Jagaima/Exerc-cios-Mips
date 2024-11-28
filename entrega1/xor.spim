@@ -1,0 +1,86 @@
+.data
+newline: .asciiz "\n"      
+buffer: .space 32          
+results: .space 200        
+
+.text
+.globl main
+
+main:
+
+    li $v0, 5            
+    syscall
+    move $t0, $v0        
+
+    li $t1, 0           
+    la $t8, results      
+
+read_operations:
+    bge $t1, $t0, print_results 
+
+    li $v0, 8            
+    la $a0, buffer       
+    li $a1, 32          
+    syscall
+
+    la $t2, buffer       
+    lb $t3, 0($t2)       
+    sub $t3, $t3, 48     
+    
+    li $t4, 32           
+loop_skip_space:
+    addi $t2, $t2, 1
+    lb $t5, 0($t2)       
+    bne $t5, $t4, skip_space_found  
+    j loop_skip_space    
+
+skip_space_found:
+   
+    lb $t6, 0($t2)       
+    sub $t6, $t6, 48     
+
+    xor $t7, $t3, $t6    
+	beqz $t7, false_case 
+	li $t7, 2            
+	j store_result
+	false_case:
+	li $t7, 1            
+	store_result:
+
+
+    
+    sb $t7, 0($t8)       
+    addi $t8, $t8, 1     
+
+    
+    addi $t1, $t1, 1
+    j read_operations    
+
+print_results:
+   
+    la $t8, results     
+    li $t1, 0            
+
+print_loop:
+    bge $t1, $t0, end    
+
+    
+    lb $t7, 0($t8)       
+    move $a0, $t7        
+    li $v0, 1            
+    syscall
+
+  
+    li $v0, 4            
+    la $a0, newline      
+    syscall
+
+   
+    addi $t8, $t8, 1     
+    addi $t1, $t1, 1     
+    j print_loop        
+
+end:
+ 
+    li $v0, 10           
+    syscall
